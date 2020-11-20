@@ -1,4 +1,4 @@
-package Calc;
+package Level1.Calc;
 
 import javax.swing.*;
 import java.awt.*;

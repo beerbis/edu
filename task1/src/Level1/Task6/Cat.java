@@ -1,4 +1,4 @@
-package Task6;
+package Level1.Task6;
 
 public class Cat extends Animal {
     public Cat(String name) {

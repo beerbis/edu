@@ -1,4 +1,4 @@
-package Task6;
+package Level1.Task6;
 
 public abstract class Animal {
     private double runLimit;

@@ -1,4 +1,4 @@
-package CatFeeding;
+package Level1.CatFeeding;
 
 public class Main {
     public static void main(String[] args) {

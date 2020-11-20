@@ -1,3 +1,5 @@
+package Level1;
+
 public class Task2 {
     public static void main(String[] args) {
         //exercise #1

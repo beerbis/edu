@@ -1,4 +1,4 @@
-package Calc;
+package Level1.Calc;
 
 public abstract class CalcOperation {
     private char id;

@@ -1,4 +1,4 @@
-package CatFeeding;
+package Level1.CatFeeding;
 
 public class Plate {
     private int food = 0;
