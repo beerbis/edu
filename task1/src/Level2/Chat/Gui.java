@@ -1,9 +1,12 @@
 package Level2.Chat;
 
+import javafx.application.Application;
+
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 
 public class Gui extends JFrame {
     private JTextArea history = new JTextArea();
@@ -46,11 +49,14 @@ public class Gui extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu1 = new JMenu("?");
         JMenuItem about = new JMenuItem("About");
-        menu1.add(about);
-        menuBar.add(menu1);
-
         about.addActionListener(x -> System.out.println("Думай что всплыло модальное окно"));
+        menu1.add(about);
 
+        JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(x -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
+
+        menuBar.add(exit);
+        menuBar.add(menu1);
         return menuBar;
     }
 
