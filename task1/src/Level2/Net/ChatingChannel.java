@@ -16,7 +16,8 @@ public class ChatingChannel {
     private final Thread incomingThread;
     private String nickname = "Incognito";
     private final Consumer<String> logTheChat;
-    private boolean closed = false;
+    private volatile boolean closed = false;
+    public boolean isClosed() { return closed; }
 
     public ChatingChannel(Socket socket, String myNickname, Consumer<String> logTheChat) throws IOException {
         this.socket = socket;
@@ -30,14 +31,10 @@ public class ChatingChannel {
         incomingThread.start();
     }
 
-    synchronized boolean isClosed() {
-        return closed;
-    }
-
     private void readIncomings() {
         try {
             listening:
-            while(!isClosed()) {
+            while(!closed) {
                 String message = in.readUTF();
 
                 for (String s: protocolPhrases.keySet())
@@ -50,28 +47,34 @@ public class ChatingChannel {
                 logTheChat.accept(String.format("%s> %s", nickname, message));
             }
         } catch (IOException e) {
-            markClosed();
+            /**
+             * А вот у нас нова возникает глухой catch.
+             * Второй раз мы вызывать `markClosed()` больше не будем, да только от catch-а никуда не избавимся
+             * `in.readUTF();` очень сильно наставивает, что IOException надо поймать.
+             */
         } finally {
             markClosed();
         }
     }
 
-    private synchronized void markClosed() {
-        if (closed) return;
-        closed = true;
-        sayBie();
-        logTheChat.accept(String.format("messaging channel with %s was closed...", nickname));
-
+    private void markClosed() {
         try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            if (closed) return;
+            closed = true;
+            sayBie();
+            logTheChat.accept(String.format("messaging channel with %s was closed...", nickname));
+        } finally {//Очко Гриффиндору
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        try {
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -93,23 +96,11 @@ public class ChatingChannel {
                 });
     }
 
-    synchronized void introduceMySelf(String nickname) {
+    public void introduceMySelf(String nickname) { say(CMD_MY_NAME_IS + nickname); }
+    public void sayBie() { say(CMD_BIE); }
+    public void say(String message) {
         try {
-            out.writeUTF(CMD_MY_NAME_IS + nickname);
-        } catch (IOException e) {
-            markClosed();
-        }
-    }
-
-    synchronized void sayBie() {
-        try {
-            out.writeUTF(CMD_BIE);
-        } catch (IOException e) {}
-    }
-
-    synchronized void say(String message) {
-        try {
-            out.writeUTF(message); //или не нужен кругом тут synchronized и будет достаточно `volatile out`? А может и вообще не надо ждать синхронизации в состояниях out-а?
+            out.writeUTF(message);
         } catch (IOException e) {
             markClosed();
         }
