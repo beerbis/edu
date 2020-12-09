@@ -17,6 +17,11 @@ public class ChatingChannel {
     private String nickname = "Incognito";
     private final Consumer<String> logTheChat;
     private volatile boolean closed = false;
+
+    private static final String CMD_MY_NAME_IS = "My name is ";
+    private static final String CMD_BIE = "Bie!";
+    private final Map<String, Function<String, Boolean>> protocolPhrases = new HashMap<>();
+
     public boolean isClosed() { return closed; }
 
     public ChatingChannel(Socket socket, String myNickname, Consumer<String> logTheChat) throws IOException {
@@ -78,9 +83,6 @@ public class ChatingChannel {
         }
     }
 
-    private static final String CMD_MY_NAME_IS = "My name is ";
-    private static final String CMD_BIE = "Bie!";
-    private final Map<String, Function<String, Boolean>> protocolPhrases = new HashMap<>();
     private void initProtocol() {
         protocolPhrases.put(
                 CMD_MY_NAME_IS, s -> {
