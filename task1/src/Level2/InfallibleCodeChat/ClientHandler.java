@@ -85,15 +85,34 @@ public class ClientHandler {
             try {
                 String message = in.readUTF();
                 if (message.startsWith("-exit")) {
-                    //клиент разлогинился, да, он больше не будет получать общих сообщений - broadcast. Но не вижу где быон нас покинул.
+                    //клиент разлогинился - да; он больше не будет получать общих сообщений(broadcast) - да. Но не вижу где быон нас покинул.
                     chat.unsubscribe(this);
                     chat.broadcastMessage(String.format("[%s] logged out", name));
                     break;
+                } else if (message.startsWith("-pm")) {
+                    String pmNick = getLettersUntil(message, "-pm ".length(), ' ');
+                    String pmText = safeCopy(message, "-pm ".length() + pmNick.length() + 1, message.length());
+                    if (!chat.personalMessage(pmNick, String.format("[%s]: %s", name, pmText)))
+                        sendMessage("[INFO] there are no client named " + pmNick);
+                } else {
+                    chat.broadcastMessage(String.format("[%s]: %s", name, message));
                 }
-                chat.broadcastMessage(String.format("[%s]: %s", name, message));
             } catch (IOException e) {
                 throw new RuntimeException("SWW", e);
             }
         }
+    }
+
+    static private String getLettersUntil(String src, int startPos, char until) {
+        int endPos;
+        for (endPos = startPos; endPos < src.length() && src.charAt(endPos) != until; endPos++);
+        return safeCopy(src, startPos, endPos);
+    }
+
+    static private String safeCopy(String src, int start, int count) {
+        if (start >= src.length())
+            return "";
+
+        return src.substring(start, count);
     }
 }

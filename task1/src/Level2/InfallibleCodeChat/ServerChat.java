@@ -49,14 +49,27 @@ public class ServerChat implements Chat {
         }
     }
 
-    @Override
-    public boolean isNicknameOccupied(String nickname) {
+    private ClientHandler findClient(String nickname) {
         for (ClientHandler client : clients) {
             if (client.getName().equals(nickname)) {
-                return true;
+                return client;
             }
         }
-        return false;
+        return null;
+    }
+
+    @Override
+    public boolean isNicknameOccupied(String nickname) {
+        return findClient(nickname) != null;
+    }
+
+    @Override
+    public boolean personalMessage(String nickname, String message) {
+        ClientHandler client = findClient(nickname);
+        if (client == null) return false;
+
+        client.sendMessage(message);
+        return true;
     }
 
     @Override
