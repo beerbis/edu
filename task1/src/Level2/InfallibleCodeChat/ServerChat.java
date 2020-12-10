@@ -30,6 +30,10 @@ public class ServerChat implements Chat {
                 System.out.println("Server is waiting for a connection ...");
                 Socket socket = serverSocket.accept();
                 ClientHandler clientHandler = new ClientHandler(socket, this);
+
+                //1. Уж прямо сукисфулли логид ин... при всё желении авторизация, идущая в параллельном потоке, не успеет пройти,
+                // а если и успеет - гонка потоков.
+                //2. ClientHandler.name(getName) - не разделяемый ресурс? К нему, как вижу, не требуется синхронизация доступа.
                 System.out.println(String.format("[%s] Client[%s] is successfully logged in", new Date(), clientHandler.getName()));
             }
         } catch (Exception e) {
@@ -56,6 +60,8 @@ public class ServerChat implements Chat {
     }
 
     @Override
+    //clients, т.е. `HashSet<>` - не требует никакой синхронизации?? он потокобезопасный, или не является(ну а вдруг) разделяемым ресурсом?
+    //так-то clients параллельно из разных потоков и читается, и add-ается, и remove-ится
     public void subscribe(ClientHandler client) {
         clients.add(client);
     }

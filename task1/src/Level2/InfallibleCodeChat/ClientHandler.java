@@ -85,6 +85,7 @@ public class ClientHandler {
             try {
                 String message = in.readUTF();
                 if (message.startsWith("-exit")) {
+                    //клиент разлогинился, да, он больше не будет получать общих сообщений - broadcast. Но не вижу где быон нас покинул.
                     chat.unsubscribe(this);
                     chat.broadcastMessage(String.format("[%s] logged out", name));
                     break;
