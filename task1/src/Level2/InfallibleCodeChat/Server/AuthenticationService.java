@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat;
+package Level2.InfallibleCodeChat.Server;
 
 import java.util.HashSet;
 import java.util.Set;

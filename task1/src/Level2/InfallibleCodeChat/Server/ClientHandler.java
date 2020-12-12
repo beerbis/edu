@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat;
+package Level2.InfallibleCodeChat.Server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

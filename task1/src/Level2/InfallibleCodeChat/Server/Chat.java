@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat;
+package Level2.InfallibleCodeChat.Server;
 
 public interface Chat {
     void broadcastMessage(String message);
