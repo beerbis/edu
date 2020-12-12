@@ -41,8 +41,6 @@ public class ClientHandler {
                 chat.allow(this);
                 receiveMessage();
                 chat.disallow(this);
-            } catch (ChatProtocolClose chatProtocolClose) {
-                chat.disallow(this);
             } finally {
                 close();
             }
@@ -110,17 +108,19 @@ public class ClientHandler {
         }
     }
 
-    public void receiveMessage() throws ChatProtocolClose {
+    public void receiveMessage() {
         while (true) {
             try {
                 String message = in.readUTF();
                 if (message.startsWith("-exit")) {
-                    throw new ChatProtocolClose();
+                    break;
+
                 } else if (message.startsWith("-pm")) {
                     String pmNick = getLettersUntil(message, "-pm ".length(), ' ');
                     String pmText = safeCopy(message, "-pm ".length() + pmNick.length() + 1, message.length());
                     if (!chat.personalMessage(pmNick, String.format("[%s]: %s", name, pmText)))
                         sendMessage("[INFO] there are no client named " + pmNick);
+
                 } else {
                     chat.broadcastMessage(String.format("[%s]: %s", name, message));
                 }
