@@ -1,34 +1,28 @@
 package Level2.InfallibleCodeChat.Applications;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import Level2.Chat.ChatGui;
+import Level2.InfallibleCodeChat.Client.Client;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.Scanner;
+import java.util.function.Consumer;
 
 public class ClientAppOne {
+    static private Client client;
+    static private ChatGui gui;
+    static private Consumer<String> actualSubmitConsumer;
+
     public static void main(String[] args) {
+        actualSubmitConsumer = x -> logNoConnection();
+        gui = new ChatGui(msg -> actualSubmitConsumer.accept(msg));
+
         try {
-            Socket socket = new Socket("127.0.0.1", 8888);
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-
-            new Thread(() -> {
-                while (true) {
-                    try {
-                        System.out.println(in.readUTF());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-            Scanner scanner = new Scanner(System.in);
-            while (!socket.isClosed()) {
-                out.writeUTF(scanner.nextLine());
-            }
+            client = new Client("127.0.0.1", 8888, gui::appendChatLog);
+            actualSubmitConsumer = client::send;
         } catch (IOException e) {
-            e.printStackTrace();
+            logNoConnection();
         }
+    }
+
+    private static void logNoConnection() {
+        gui.appendChatLog("Соединение не установленно...");
     }
 }
