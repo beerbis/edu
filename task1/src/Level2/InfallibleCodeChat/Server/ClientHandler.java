@@ -27,7 +27,7 @@ public class ClientHandler {
             throw new RuntimeException("SWW", e);
         }
 
-        listen();
+        new Thread(this::listen).start();
     }
 
     public String getName() {
@@ -35,19 +35,17 @@ public class ClientHandler {
     }
 
     private void listen() {
-        new Thread(() -> {
+        try {
+            if (!doAuth()) return;
+            chat.allow(this);
+            receiveMessage();
+        } finally {
             try {
-                if (!doAuth()) return;
-                chat.allow(this);
-                receiveMessage();
+                chat.disallow(this);
             } finally {
-                try {
-                    chat.disallow(this);
-                } finally {
-                    close();
-                }
+                close();
             }
-        }).start();
+        }
     }
 
     /**
