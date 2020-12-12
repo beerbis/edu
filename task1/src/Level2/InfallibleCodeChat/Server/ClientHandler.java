@@ -38,9 +38,11 @@ public class ClientHandler {
         new Thread(() -> {
             try {
                 if (!doAuth()) return;
+                chat.allow(this);
                 receiveMessage();
+                chat.disallow(this);
             } catch (ChatProtocolClose chatProtocolClose) {
-                //спасибо, обработал.
+                chat.disallow(this);
             } finally {
                 close();
             }
@@ -68,7 +70,6 @@ public class ClientHandler {
                 try {
                     if (tryAuthSeq(in.readUTF())) {
                         socket.setSoTimeout(initialTimeout);
-                        chat.subscribe(this);
                         return true;
                     }
                 } catch (SocketTimeoutException e) {
@@ -89,7 +90,6 @@ public class ClientHandler {
                 if (!chat.isNicknameOccupied(mayBeNickname)) {
                     sendMessage("[INFO] Auth OK");
                     name = mayBeNickname;
-                    chat.broadcastMessage(String.format("[%s] logged in", name));
 
                     return true;
                 } else {
@@ -115,8 +115,6 @@ public class ClientHandler {
             try {
                 String message = in.readUTF();
                 if (message.startsWith("-exit")) {
-                    chat.unsubscribe(this);
-                    chat.broadcastMessage(String.format("[%s] logged out", name));
                     throw new ChatProtocolClose();
                 } else if (message.startsWith("-pm")) {
                     String pmNick = getLettersUntil(message, "-pm ".length(), ' ');

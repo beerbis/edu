@@ -73,12 +73,14 @@ public class ServerChat implements Chat {
     }
 
     @Override
-    public synchronized void subscribe(ClientHandler client) {
+    public synchronized void allow(ClientHandler client) {
+        broadcastMessage(String.format("[%s] logged in", client.getName()));
         clients.add(client);
     }
 
     @Override
-    public synchronized void unsubscribe(ClientHandler client) {
-        clients.remove(client);
+    public synchronized void disallow(ClientHandler client) {
+        if (clients.remove(client))
+            broadcastMessage(String.format("[%s] logged out", client.getName()));
     }
 }
