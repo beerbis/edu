@@ -40,9 +40,12 @@ public class ClientHandler {
                 if (!doAuth()) return;
                 chat.allow(this);
                 receiveMessage();
-                chat.disallow(this);
             } finally {
-                close();
+                try {
+                    chat.disallow(this);
+                } finally {
+                    close();
+                }
             }
         }).start();
     }
