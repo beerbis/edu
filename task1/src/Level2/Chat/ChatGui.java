@@ -1,19 +1,27 @@
 package Level2.Chat;
 
+import com.sun.corba.se.spi.orbutil.fsm.Input;
+import com.sun.javafx.scene.text.TextLine;
 import javafx.application.Application;
+import sun.awt.InputMethodSupport;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.TextListener;
 import java.awt.event.WindowEvent;
+import java.util.Date;
+import java.util.function.Consumer;
 
-public class Gui extends JFrame {
+public class ChatGui extends JFrame implements ChatLog{
     private JTextArea history = new JTextArea();
     private JTextField edit = new JTextField();
     private JButton submit = new JButton("submit");
+    private Consumer<String> doOnSubmit;
 
-    public Gui() {
+    public ChatGui(Consumer<String> doOnSubmit) {
+        this.doOnSubmit = doOnSubmit;
         setTitle("Uber chat via network");
         setBounds(300, 300 , 600, 450);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -30,7 +38,7 @@ public class Gui extends JFrame {
         history.setEditable(false);
 
         ActionListener upendingAction = x -> {
-            history.setText(history.getText() + edit.getText() + "\n\n");
+            doOnSubmit.accept(edit.getText());
             edit.setText("");
         };
         submit.addActionListener(upendingAction);
@@ -52,12 +60,18 @@ public class Gui extends JFrame {
         about.addActionListener(x -> System.out.println("Думай что всплыло модальное окно"));
         menu1.add(about);
 
+        JMenu menuFile = new JMenu("File");
         JMenuItem exit = new JMenuItem("Exit");
+        menuFile.add(exit);
         exit.addActionListener(x -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
 
-        menuBar.add(exit);
+        menuBar.add(menuFile);
         menuBar.add(menu1);
         return menuBar;
+    }
+
+    public void appendChatLog(String message) {
+        history.setText(history.getText() + String.format("[%s]\n%s\n\n", new Date(), message));
     }
 
 
