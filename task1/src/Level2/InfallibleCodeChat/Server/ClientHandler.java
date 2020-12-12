@@ -1,9 +1,11 @@
 package Level2.InfallibleCodeChat.Server;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private String name;
@@ -11,6 +13,8 @@ public class ClientHandler {
     private DataOutputStream out;
     private Socket socket;
     private Chat chat;
+
+    static private final int TIMEOUT_AUTH_MS = 120_000;
 
     public ClientHandler(Socket socket, Chat chat) {
         this.socket = socket;
@@ -32,44 +36,67 @@ public class ClientHandler {
 
     private void listen() {
         new Thread(() -> {
-            doAuth();
+            if (!doAuth()) {
+                close();
+                return;
+            }
             receiveMessage();
         }).start();
     }
 
-    private void doAuth() {
+    /**
+     * -auth login password
+     * sample: -auth l1 p1
+     */
+    private boolean doAuth() {
         sendMessage("Please enter credentials. Sample [-auth login password]");
         try {
-            /**
-             * -auth login password
-             * sample: -auth l1 p1
-             */
+            int initialTimeout = socket.getSoTimeout();
+            long startTime = System.currentTimeMillis();
             while (true) {
-                String mayBeCredentials = in.readUTF();
-                if (mayBeCredentials.startsWith("-auth")) {
-                    String[] credentials = mayBeCredentials.split("\\s");
-                    String mayBeNickname = chat.getAuthenticationService()
-                            .findNicknameByLoginAndPassword(credentials[1], credentials[2]);
-                    if (mayBeNickname != null) {
-                        if (!chat.isNicknameOccupied(mayBeNickname)) {
-                            sendMessage("[INFO] Auth OK");
-                            name = mayBeNickname;
+                int restOfTheTimeout = TIMEOUT_AUTH_MS - (int)(System.currentTimeMillis() - startTime);
+                if (restOfTheTimeout <= 0) {
+                    socket.setSoTimeout(initialTimeout);
+                    sendMessage("[INFO] Auth timed out");
+                    return false;
+                }
+                socket.setSoTimeout(restOfTheTimeout);
 
-                            chat.broadcastMessage(String.format("[%s] logged in", name));
-                            chat.subscribe(this);
-
-                            return;
-                        } else {
-                            sendMessage("[INFO] Current user is already logged in.");
-                        }
-                    } else {
-                        sendMessage("[INFO] Wrong login or password.");
+                try {
+                    if (tryAuthSeq(in.readUTF())) {
+                        socket.setSoTimeout(initialTimeout);
+                        chat.subscribe(this);
+                        return true;
                     }
+                } catch (SocketTimeoutException e) {
+                    continue;
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException("SWW", e);
         }
+    }
+
+    private boolean tryAuthSeq(String mayBeCredentials) {
+        if (mayBeCredentials.startsWith("-auth")) {
+            String[] credentials = mayBeCredentials.split("\\s");
+            String mayBeNickname = chat.getAuthenticationService()
+                    .findNicknameByLoginAndPassword(credentials[1], credentials[2]);
+            if (mayBeNickname != null) {
+                if (!chat.isNicknameOccupied(mayBeNickname)) {
+                    sendMessage("[INFO] Auth OK");
+                    name = mayBeNickname;
+                    chat.broadcastMessage(String.format("[%s] logged in", name));
+
+                    return true;
+                } else {
+                    sendMessage("[INFO] Current user is already logged in.");
+                }
+            } else {
+                sendMessage("[INFO] Wrong login or password.");
+            }
+        }
+        return false;
     }
 
     public void sendMessage(String message) {
@@ -114,5 +141,20 @@ public class ClientHandler {
             return "";
 
         return src.substring(start, count);
+    }
+    private void close() {
+        justCloseEm(in);
+        justCloseEm(out);
+        justCloseEm(socket);
+    }
+
+    private void justCloseEm(Closeable closeable) {
+        if (closeable == null) return;
+
+        try {
+            closeable.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
