@@ -43,13 +43,13 @@ public class ServerChat implements Chat {
 
 
     @Override
-    public void broadcastMessage(String message) {
+    public synchronized void broadcastMessage(String message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
         }
     }
 
-    private ClientHandler findClient(String nickname) {
+    private synchronized ClientHandler findClient(String nickname) {
         for (ClientHandler client : clients) {
             if (client.getName().equals(nickname)) {
                 return client;
@@ -73,14 +73,12 @@ public class ServerChat implements Chat {
     }
 
     @Override
-    //clients, т.е. `HashSet<>` - не требует никакой синхронизации?? он потокобезопасный, или не является(ну а вдруг) разделяемым ресурсом?
-    //так-то clients параллельно из разных потоков и читается, и add-ается, и remove-ится
-    public void subscribe(ClientHandler client) {
+    public synchronized void subscribe(ClientHandler client) {
         clients.add(client);
     }
 
     @Override
-    public void unsubscribe(ClientHandler client) {
+    public synchronized void unsubscribe(ClientHandler client) {
         clients.remove(client);
     }
 }
