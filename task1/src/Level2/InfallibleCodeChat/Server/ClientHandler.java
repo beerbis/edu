@@ -36,11 +36,14 @@ public class ClientHandler {
 
     private void listen() {
         new Thread(() -> {
-            if (!doAuth()) {
+            try {
+                if (!doAuth()) return;
+                receiveMessage();
+            } catch (ChatProtocolClose chatProtocolClose) {
+                //спасибо, обработал.
+            } finally {
                 close();
-                return;
             }
-            receiveMessage();
         }).start();
     }
 
@@ -107,15 +110,14 @@ public class ClientHandler {
         }
     }
 
-    public void receiveMessage() {
+    public void receiveMessage() throws ChatProtocolClose {
         while (true) {
             try {
                 String message = in.readUTF();
                 if (message.startsWith("-exit")) {
-                    //клиент разлогинился - да; он больше не будет получать общих сообщений(broadcast) - да. Но не вижу где быон нас покинул.
                     chat.unsubscribe(this);
                     chat.broadcastMessage(String.format("[%s] logged out", name));
-                    break;
+                    throw new ChatProtocolClose();
                 } else if (message.startsWith("-pm")) {
                     String pmNick = getLettersUntil(message, "-pm ".length(), ' ');
                     String pmText = safeCopy(message, "-pm ".length() + pmNick.length() + 1, message.length());
