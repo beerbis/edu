@@ -52,11 +52,7 @@ public class ChatingChannel {
                 logTheChat.accept(String.format("%s> %s", nickname, message));
             }
         } catch (IOException e) {
-            /**
-             * А вот у нас нова возникает глухой catch.
-             * Второй раз мы вызывать `markClosed()` больше не будем, да только от catch-а никуда не избавимся
-             * `in.readUTF();` очень сильно наставивает, что IOException надо поймать.
-             */
+            e.printStackTrace();
         } finally {
             markClosed();
         }
@@ -104,6 +100,7 @@ public class ChatingChannel {
         try {
             out.writeUTF(message);
         } catch (IOException e) {
+            e.printStackTrace();
             markClosed();
         }
     }
