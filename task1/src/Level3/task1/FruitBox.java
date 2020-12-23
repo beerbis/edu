@@ -11,6 +11,16 @@ public abstract class FruitBox<T extends Fruit> {
         content = new ArrayList<>(Arrays.asList(fruits));
     }
 
+    public float getWeight() {
+        return content.size() * getSingleFruitWeight();
+    }
+
+    protected abstract float getSingleFruitWeight();
+
+    public boolean compare(FruitBox<?> anotherBox) {
+        return Math.abs(getWeight() - anotherBox.getWeight()) < MEASUREMENT_ERROR;
+    }
+
     public void pourOver(FruitBox<T> intoBox) {
         intoBox.content.addAll(content);
         content.clear();
