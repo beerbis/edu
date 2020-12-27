@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat.Server;
+package ru.beerbis.chatserver;
 
 import java.util.HashSet;
 import java.util.Set;

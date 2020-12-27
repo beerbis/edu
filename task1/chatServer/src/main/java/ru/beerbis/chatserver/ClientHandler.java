@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat.Server;
+package ru.beerbis.chatserver;
 
 import java.io.Closeable;
 import java.io.DataInputStream;

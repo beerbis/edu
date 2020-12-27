@@ -1,7 +1,4 @@
-package Level2.InfallibleCodeChat.Applications;
-
-
-import Level2.InfallibleCodeChat.Server.ServerChat;
+package ru.beerbis.chatserver;
 
 public class ServerApp {
     public static void main(String[] args) {

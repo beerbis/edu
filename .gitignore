@@ -1,2 +1,6 @@
 *.mp4
-out/
+*.class
+/.idea/
+.idea/
+/videos/
+/out/
