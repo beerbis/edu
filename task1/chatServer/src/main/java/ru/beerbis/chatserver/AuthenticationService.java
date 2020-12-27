@@ -1,48 +1,36 @@
 package ru.beerbis.chatserver;
 
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
 
 public class AuthenticationService {
-    private Set<CredentialsEntry> entries = new HashSet<>();
+    private final Connection connection = connect();
+    private final PreparedStatement qLogin = connection.prepareStatement("select nickname from users where login=? and rawpwd=?");
 
-    public AuthenticationService() {
-        entries.add(new CredentialsEntry("l1", "p1", "nickname1"));
-        entries.add(new CredentialsEntry("l2", "p2", "nickname2"));
-        entries.add(new CredentialsEntry("l3", "p3", "nickname3"));
+    public AuthenticationService() throws SQLException, ClassNotFoundException {
     }
 
-    public String findNicknameByLoginAndPassword(String login, String password) {
-        for (CredentialsEntry entry : entries) {
-            if (entry.getLogin().equals(login) && entry.getPassword().equals(password)) {
-                return entry.getNickname();
+    private Connection connect() throws ClassNotFoundException, SQLException {
+        Class.forName("org.sqlite.JDBC");
+        return DriverManager.getConnection("jdbc:sqlite:auth.db");
+    }
+
+    public synchronized String findNicknameByLoginAndPassword(String login, String password) throws AuthActionException {
+        try {
+            qLogin.setString(1, login);
+            qLogin.setString(2, password);
+            try (ResultSet result = qLogin.executeQuery();) {
+                if (!result.next()) return null;
+                return result.getString(1);
             }
+        } catch (SQLException e) {
+            throw new AuthActionException("Не удалось проверить логин/пароль в базе", e);
         }
-        return null;
     }
 
-    public static class CredentialsEntry {
-        private String login;
-        private String password;
-        private String nickname;
-
-        public CredentialsEntry(String login, String password, String nickname) {
-            this.login = login;
-            this.password = password;
-            this.nickname = nickname;
-        }
-
-
-        public String getLogin() {
-            return login;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public String getNickname() {
-            return nickname;
-        }
+    public static class AuthActionException extends Exception {
+        public AuthActionException(String message, Throwable cause) { super(message, cause); }
+        public AuthActionException(Throwable cause) { super(cause); }
     }
 }

@@ -80,7 +80,7 @@ public class ClientHandler {
         }
     }
 
-    private boolean tryAuthSeq(String mayBeCredentials) {
+    private boolean tryAuthSeq(String mayBeCredentials) throws AuthenticationService.AuthActionException {
         if (mayBeCredentials.startsWith("-auth")) {
             String[] credentials = mayBeCredentials.split("\\s");
             String mayBeNickname = chat.getAuthenticationService()
