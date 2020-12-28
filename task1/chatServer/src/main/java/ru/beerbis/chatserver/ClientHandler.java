@@ -9,6 +9,7 @@ import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private String name;
+    private String login;
     private DataInputStream in;
     private DataOutputStream out;
     private Socket socket;
@@ -89,6 +90,7 @@ public class ClientHandler {
                 if (!chat.isNicknameOccupied(mayBeNickname)) {
                     sendMessage("[INFO] Auth OK");
                     name = mayBeNickname;
+                    login = credentials[1];
 
                     return true;
                 } else {
@@ -113,27 +115,47 @@ public class ClientHandler {
         while (true) {
             try {
                 String message = in.readUTF();
-                if (message.startsWith("-exit")) {
-                    break;
+                if (message.length() > 1 && message.charAt(0) == '-') {
+                    if (message.startsWith("-exit")) {
+                        break;
 
-                } else if (message.startsWith("-pm")) {
-                    String pmNick = getLettersUntil(message, "-pm ".length(), ' ');
-                    String pmText = safeCopy(message, "-pm ".length() + pmNick.length() + 1, message.length());
-                    if (!chat.personalMessage(pmNick, String.format("[%s]: %s", name, pmText)))
-                        sendMessage("[INFO] there are no client named " + pmNick);
+                    } else if (message.startsWith("-pm")) {
+                        String pmNick = getNextWord(message, "-pm".length());
+                        String pmText = safeCopy(message, "-pm".length() + pmNick.length() + 1, message.length());
+                        if (!chat.personalMessage(pmNick, String.format("[%s]: %s", name, pmText)))
+                            sendMessage("[INFO] there are no client named " + pmNick);
 
+                    } else if (message.startsWith("-iam")) {
+                        String newNick = getNextWord(message, "-iam".length());
+                        if (newNick.length() == 0) {
+                            sendMessage("[INFO] new nickname should be defined");
+                            continue;
+                        }
+
+                        String oldNick = name;
+                        chat.getAuthenticationService().changeNicknameByLogin(login, newNick);
+                        name = newNick;
+                        chat.broadcastMessage("[INFO] " + oldNick + " is now known as " + name);
+
+                    }
                 } else {
                     chat.broadcastMessage(String.format("[%s]: %s", name, message));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("SWW", e);
+            } catch (AuthenticationService.AuthActionException e) {
+                e.printStackTrace();
+                sendMessage("[ERROR] " + e.getMessage());
             }
         }
     }
 
-    static private String getLettersUntil(String src, int startPos, char until) {
+    static private String getNextWord(String src, int startPos) {
+        final char whiteSpace = ' ';
+
+        for (; startPos < src.length() && src.charAt(startPos) == whiteSpace; startPos++);
         int endPos;
-        for (endPos = startPos; endPos < src.length() && src.charAt(endPos) != until; endPos++);
+        for (endPos = startPos; endPos < src.length() && src.charAt(endPos) != whiteSpace; endPos++);
         return safeCopy(src, startPos, endPos);
     }
 
