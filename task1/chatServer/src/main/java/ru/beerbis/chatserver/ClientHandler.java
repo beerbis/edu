@@ -88,9 +88,9 @@ public class ClientHandler {
                     .findNicknameByLoginAndPassword(credentials[1], credentials[2]);
             if (mayBeNickname != null) {
                 if (!chat.isNicknameOccupied(mayBeNickname)) {
-                    sendMessage("[INFO] Auth OK");
                     name = mayBeNickname;
                     login = credentials[1];
+                    sendMessage("[INFO] Auth OK:" + login + "," + name);
 
                     return true;
                 } else {

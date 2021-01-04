@@ -5,16 +5,17 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.function.Consumer;
 
 public class Client {
+    static final String LOGGED_IN_PREFIX = "[INFO] Auth OK:";
+
     private  Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private Consumer<String> doOnLog;
+    private ChatClientEvents chatEvents;
 
-    public Client(String host, int port, Consumer<String> doOnLog) throws IOException {
-        this.doOnLog = doOnLog;
+    public Client(String host, int port, ChatClientEvents events) throws IOException {
+        this.chatEvents = events;
         try {
             socket = new Socket(host, port);
             in = new DataInputStream(socket.getInputStream());
@@ -30,7 +31,15 @@ public class Client {
 
     private void listen() {
         try {
-            while (true) doOnLog.accept(in.readUTF());
+            while (true) {
+                String msg = in.readUTF();
+                if (msg.startsWith(LOGGED_IN_PREFIX)) {
+                    String[] ids = msg.substring(LOGGED_IN_PREFIX.length()).split(",");
+                    chatEvents.onLoggedIn(ids[0], ids[1]);
+                }
+
+                chatEvents.onIncoming(msg);
+            }
         } catch (IOException e) {
             logException(e);
         } finally {
@@ -50,7 +59,7 @@ public class Client {
     };
 
     private void logException(IOException e) {
-        doOnLog.accept(String.format("[exception] %s, %s", e.getClass().getSimpleName(), e.getMessage()));
+        chatEvents.onError(e);
     }
 
     private void close() {
