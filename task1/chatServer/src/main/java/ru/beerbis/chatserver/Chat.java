@@ -1,4 +1,4 @@
-package Level2.InfallibleCodeChat.Server;
+package ru.beerbis.chatserver;
 
 public interface Chat {
     void broadcastMessage(String message);
