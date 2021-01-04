@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.TextListener;
 import java.awt.event.WindowEvent;
+import java.io.*;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -20,6 +21,7 @@ public class ChatGui extends JFrame implements ChatLog, ChatClientEvents {
     private JTextField edit = new JTextField();
     private JButton submit = new JButton("submit");
     private Consumer<String> doOnSubmit;
+    private BufferedWriter logFile;
 
     public ChatGui(Consumer<String> doOnSubmit) {
         this.doOnSubmit = doOnSubmit;
@@ -72,10 +74,51 @@ public class ChatGui extends JFrame implements ChatLog, ChatClientEvents {
     }
 
     public void onIncoming(String message) {
-        SwingUtilities.invokeLater(() -> history.setText(history.getText() + String.format("[%s]\n%s\n\n", new Date(), message)));
+        String newText = String.format("[%s]\n%s\n\n", new Date(), message);
+        SwingUtilities.invokeLater(() -> history.append(newText));
+        if (logFile != null) {
+            try {
+                logFile.write(newText);
+                logFile.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String getFileData(FileReader file) {
+        StringBuilder sb = new StringBuilder(1024);
+        char buffer[] = new char[1024];
+
+        try {
+            do {
+                int count = file.read(buffer);
+                if (count <= 0) break;
+                sb.append(buffer, 0, count);
+            } while (true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return sb.toString();
     }
 
     public void onLoggedIn(String login, String nickname) {
+        String logFileName = "history_" + login + ".txt";
+
+        try(FileReader logReader = new FileReader(logFileName)) {
+            String logText = getFileData(logReader);
+            SwingUtilities.invokeLater(() -> {
+                history.setText(logText);
+                history.setCaretPosition(logText.length());
+            });
+
+            logFile = new BufferedWriter(new FileWriter(logFileName, true));
+        } catch (IOException e) {
+            e.printStackTrace();
+            onError(e);
+        }
+
         SwingUtilities.invokeLater(() -> setTitle(nickname));
     }
 
