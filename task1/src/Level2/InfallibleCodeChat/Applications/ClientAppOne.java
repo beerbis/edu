@@ -15,7 +15,7 @@ public class ClientAppOne {
         gui = new ChatGui(msg -> actualSubmitConsumer.accept(msg));
 
         try {
-            client = new Client("127.0.0.1", 8888, gui::appendChatLog);
+            client = new Client("127.0.0.1", 8888, gui);
             actualSubmitConsumer = client::send;
         } catch (IOException e) {
             logNoConnection();
@@ -23,6 +23,6 @@ public class ClientAppOne {
     }
 
     private static void logNoConnection() {
-        gui.appendChatLog("Соединение не установленно...");
+        gui.onIncoming("Соединение не установленно...");
     }
 }
