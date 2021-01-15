@@ -9,17 +9,14 @@ public class WaitingPrinter {
 
     public static void main(String[] args) {
         WaitingPrinter printer = new WaitingPrinter();
-        new Thread(() -> {
-            for (int i = 1; i <= COUNT; i++) printer.printOne('A', 'C', true);
-        }).start();
 
-        new Thread(() -> {
-            for (int i = 1; i <= COUNT; i++) printer.printOne('B', 'A', false);
-        }).start();
+        new Thread(() -> printer.printThemAll('A', 'C', true)).start();
+        new Thread(() -> printer.printThemAll('B', 'A', false)).start();
+        new Thread(() -> printer.printThemAll('C', 'B', false)).start();
+    }
 
-        new Thread(() -> {
-            for (int i = 1; i <= COUNT; i++) printer.printOne('C', 'B', false);
-        }).start();
+    private void printThemAll(char literal, char trigger, boolean triggerOnNoChar) {
+        for (int i = 1; i <= COUNT; i++) printOne(literal, trigger, triggerOnNoChar);
     }
 
     private synchronized void printOne(char literal, char trigger, boolean triggerOnNoChar) {
