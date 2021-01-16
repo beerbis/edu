@@ -1,11 +1,10 @@
 package Level3.theRace;
 
 public abstract class Stage {
-    protected int length;
-    protected String description;
+    public final String description;
 
-    public String getDescription() {
-        return description;
+    public Stage(String description) {
+        this.description = description;
     }
 
     public abstract void go(Car c);
