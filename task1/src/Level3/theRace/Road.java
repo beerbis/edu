@@ -14,6 +14,7 @@ public class Road extends Stage {
             System.out.println(c.getName() + " закончил этап: " + description);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            System.out.println(c.getName() + " сошёл с этапа: " + description);
         }
     }
 }
