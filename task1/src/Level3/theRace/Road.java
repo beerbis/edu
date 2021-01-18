@@ -17,14 +17,20 @@ public class Road extends Stage {
         try {
             doOnBeforeGoing(c);
 
-            System.out.println(c.getName() + " начал этап: " + description);
-            Thread.sleep(length / c.getSpeed() * 1000);
-            System.out.println(c.getName() + " закончил этап: " + description);
+            try {
+                System.out.println(c.getName() + " начал этап: " + description);
+                Thread.sleep(length / c.getSpeed() * 1000);
+                System.out.println(c.getName() + " закончил этап: " + description);
+            } finally {
+                doOnAfterGoing(c);
+            }
+
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.out.println(c.getName() + " сошёл с этапа: " + description);
         }
     }
 
-    protected void doOnBeforeGoing(Car c) {}
+    protected void doOnBeforeGoing(Car c) throws InterruptedException {}
+    protected void doOnAfterGoing(Car c) {}
 }
