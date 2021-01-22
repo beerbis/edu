@@ -1,25 +1,26 @@
 package Level3.theRace;
 
-public class Tunnel extends Stage {
-    public Tunnel() {
-        this.length = 80;
-        this.description = "Тоннель " + length + " метров";
+import java.util.concurrent.Semaphore;
+
+public class Tunnel extends Road {
+    private final Semaphore semaphore;
+    public Tunnel(int capacity) {
+        super(80, "Тоннель");
+        semaphore = new Semaphore(capacity);
     }
 
     @Override
-    public void go(Car c) {
-        try {
-            try {
-                System.out.println(c.getName() + " готовится к этапу(ждет): " + description);
-                System.out.println(c.getName() + " начал этап: " + description);
-                Thread.sleep(length / c.getSpeed() * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                System.out.println(c.getName() + " закончил этап: " + description);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    protected void doOnBeforeGoing(Car c) throws InterruptedException {
+        super.doOnBeforeGoing(c);
+        if (!semaphore.tryAcquire()) {
+            System.out.println(c.getName() + " готовится к этапу(ждет): " + description);
+            semaphore.acquire();
         }
+    }
+
+    @Override
+    protected void doOnAfterGoing(Car c) {
+        super.doOnAfterGoing(c);
+        semaphore.release();
     }
 }
