@@ -1,0 +1,1 @@
+1. найти и прочесть: An illustrated guide for programmers and other curious people про алгоритмы и О-большое
