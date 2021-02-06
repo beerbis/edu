@@ -124,6 +124,30 @@ public class ArrayImpl<E extends Comparable<? super E>> implements Array<E> {
         }
     }
 
+    public void sortBiSelect() {
+        int lowIndex = 0;
+        int highIndex = size - 1;
+        while (lowIndex < highIndex) {
+            int minIndex = lowIndex;
+            int maxIndex = lowIndex;
+            for (int j = lowIndex + 1; j <= highIndex; j++) {
+                if (data[j].compareTo(data[minIndex]) < 0) {
+                    minIndex = j;
+                }
+                if (data[j].compareTo(data[maxIndex]) > 0) {
+                    maxIndex = j;
+                }
+            }
+            if (minIndex == maxIndex) break;
+            swap(minIndex, lowIndex);
+            if (maxIndex == lowIndex) maxIndex = minIndex;
+            swap(maxIndex, highIndex);
+
+            lowIndex++;
+            highIndex--;
+        }
+    }
+
     // O(n^2) --> O(n) - compare
     // O(n) --> O(0) = exchange
     @Override

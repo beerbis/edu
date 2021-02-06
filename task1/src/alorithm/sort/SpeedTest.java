@@ -3,6 +3,7 @@ package alorithm.sort;
 import alorithm.sort.lesson.Array;
 import alorithm.sort.lesson.ArrayImpl;
 import com.sun.istack.internal.NotNull;
+import org.omg.CORBA.INTERNAL;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -15,13 +16,22 @@ public class SpeedTest {
     public static void main(String[] args) {
         SpeedTest test = new SpeedTest();
 
-        //64.8 - мкрзко
+        //64.8(25.8, греется сильно дольше всех прочих) - мерзко
         test.test(Array::sortBubble, "sortBubble");
-        //21.1 - хорошо
+
+        //21.1(15.6) - хорошо, относитель `sortBubble`
         test.test(Array::sortSelect, "sortSelect");
-        //20.8 - практически никакой разницы
+
+        //22.8(13.3) - разница копеечная, прогревается лучше `sortSelect`.
+        //  Непрогретый страдает от трудозатрадности доп. вызова `compare()` на итерацию.
+        test.test(Array::sortBiSelect, "sortBiSelect");
+
+        //20.8-22.8(13.3) - практически никакой разницы, относительно `sortSelect`,
+        //  то быстрее, то медленнее `sortSelect`,  видимо зависит от набора данных.
+        //  На прогретом работает ровно как `sortBiSelect` и чуть быстрее `sortSelect` - всегда.
         test.test(Array::sortInsert, "sortInsert");
-        //8.4 - совсем другое дело
+
+        //8.4(не греется) - совсем другое дело
         test.test(Array::sortInsertPerf, "sortInsertPerf");
 
         //Вывод. Алгоритмы - хорошо; оптимизация, даже тупа и скучная в лоб - рулит.
