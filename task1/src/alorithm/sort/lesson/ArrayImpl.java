@@ -20,7 +20,7 @@ public class ArrayImpl<E extends Comparable<? super E>> implements Array<E> {
     }
 
     public ArrayImpl(E[] data) {
-        this.data = data;
+        this.data = data.clone();
         size = data.length;
     }
 

@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 public class SpeedTest {
     static final int SIZE = 100_000;
 
+    private final Integer[] testData = fillRandomValues(doPart1());
+
     public static void main(String[] args) {
         SpeedTest test = new SpeedTest();
 
@@ -47,12 +49,15 @@ public class SpeedTest {
     /**
      * 3. Заполнить массив случайными числами.
      * @param data выделенный массив под данные
+     * @return указатель на тот же самый входной массив
      */
-    private void fillRandomValues(Integer[] data) {
+    private Integer[] fillRandomValues(Integer[] data) {
         Random rnd = new Random();
 
         for (int i = 0; i < data.length; i++)
             data[i] = rnd.nextInt();
+
+        return data;
     }
 
     /**
@@ -73,9 +78,7 @@ public class SpeedTest {
      * @param methodName описание метода
      */
     public void test(Consumer<Array<Integer>> sortMethod, String methodName) {
-        Integer[] data = doPart1();
-        fillRandomValues(data);
-        Array<Integer> storage = doPart2(data);
+        Array<Integer> storage = doPart2(testData);
         measure(methodName, () -> sortMethod.accept(storage));
     }
 }
