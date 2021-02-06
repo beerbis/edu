@@ -19,6 +19,10 @@ public class ArrayImpl<E extends Comparable<? super E>> implements Array<E> {
         this.data = (E[]) new Comparable[initialCapacity];
     }
 
+    public ArrayImpl(E[] data) {
+        this.data = data;
+        size = data.length;
+    }
 
     //O(1) -> O(n)
     @Override
@@ -132,6 +136,21 @@ public class ArrayImpl<E extends Comparable<? super E>> implements Array<E> {
                 in--;
             }
             data[in] = temp;
+        }
+    }
+
+    public void sortInsertPerf() {
+        for (int i = 1; i < size; i++) {
+            E temp = data[i];
+            int in = i;
+            while (in > 0 && data[in - 1].compareTo(temp) >= 0) {
+//                data[in] = data[in - 1];
+                in--;
+            }
+            if (i != in ) {
+                System.arraycopy(data, in, data, in + 1, i - in);
+                data[in] = temp;
+            }
         }
     }
 
