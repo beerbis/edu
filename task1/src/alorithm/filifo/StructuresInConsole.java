@@ -87,11 +87,11 @@ public class StructuresInConsole {
         return true;
     }
 
-    private static boolean testFixed(Function<Integer, SequentialBuffer<Integer>> constructor) {
+    public static boolean testFixed(Function<Integer, SequentialBuffer<Integer>> constructor) {
         SequentialBuffer<Integer> filifo = constructor.apply(3);
 
         Supplier<String> stateGetter = () -> filifo.toString();
-        return debug(stateGetter,
+        boolean result = debug(stateGetter,
                 () -> shallReturn("initial size", filifo::size, 0),
                 () -> shallReturn("Изначально пуст", filifo::isEmpty, true),
                 () -> shallRaise("Извлечь нечего", filifo::pop),
@@ -122,5 +122,7 @@ public class StructuresInConsole {
                 () -> shallReturn("Всё так же пуст(0)", filifo::size, 0),
                 () -> shallReturn("Совсем пуст", filifo::isEmpty, true)
         );
+        System.out.println(result ? "[ТЕСТ ПРОЙДЕН]" : "[ТЕСТ ЗАВАЛЕН]");
+        return result;
     }
 }
