@@ -20,6 +20,15 @@ public class FixedStack<E> implements SequentialBuffer<E> {
         buffer = (E[])new Object[size];
     }
 
+    public FixedStack(E[] buffer) {
+        this(buffer, true);
+    }
+
+    public FixedStack(E[] buffer, boolean clone) {
+        this.buffer = clone ? buffer.clone() : buffer;
+        head = buffer.length - 1;
+    }
+
     @Override
     public void push(E element) {
         if (size() >= buffer.length) throw new StorageOverflowException();
