@@ -3,7 +3,10 @@ package alorithm.links.storage;
 import alorithm.filifo.buffers.Deque;
 import alorithm.filifo.buffers.StorageIsEmptyException;
 
-public class LinkedDeque<E> implements Deque<E> {
+import java.util.Iterator;
+import java.util.StringJoiner;
+
+public class LinkedDeque<E> implements Deque<E>, Iterable<E> {
     int count = 0;
     Node<E> left;
     Node<E> right;
@@ -61,11 +64,14 @@ public class LinkedDeque<E> implements Deque<E> {
 
     @Override
     public String toString() {
-        return "LinkedDeque{" +
-                "count=" + count +
-                ", left=" + left.data +
-                ", right=" + right.data +
-                '}';
+        StringJoiner joiner = new StringJoiner(", ", "[", "]");
+        for (E node: this) joiner.add(node.toString());
+        return "LinkedDeque" + joiner;
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new RightNodeIterator<E>(right);
     }
 
     static class Node<E> {
@@ -93,6 +99,27 @@ public class LinkedDeque<E> implements Deque<E> {
             if (left != null) left.right = right;
             if (right != null) right.left = left;
             return this;
+        }
+    }
+
+    static class RightNodeIterator<E> implements Iterator<E> {
+
+        private Node<E> node;
+
+        @Override
+        public boolean hasNext() {
+            return node != null;
+        }
+
+        @Override
+        public E next() {
+            E result = node.data;
+            node = node.left;
+            return result;
+        }
+
+        public RightNodeIterator(Node<E> node) {
+            this.node = node;
         }
     }
 }
