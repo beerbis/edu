@@ -2,10 +2,16 @@ package alorithm.links.storage;
 
 import alorithm.filifo.buffers.Deque;
 import alorithm.filifo.buffers.StorageIsEmptyException;
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
+
+import static java.util.Objects.requireNonNull;
 
 public class LinkedDeque<E> implements Deque<E>, Iterable<E> {
     int count = 0;
@@ -72,30 +78,40 @@ public class LinkedDeque<E> implements Deque<E>, Iterable<E> {
 
     @Override
     public NodeIterator<E> iterator() {
-        class LeftIterator<E> extends DequeIterator<E> {
-
-            public LeftIterator(LinkedDeque<E> deque) {
-                super(deque, deque.left);
-            }
-
-            @Override
-            protected Node<E> getTextNode(Node<E> node) {
-                return node.right;
-            }
-        }
-
-        return new LeftIterator<>(this);
+        return new NodeIterator<>(left, Node::getRight, Node::getLeft,
+                inserted -> {
+                    count++;
+                    if (inserted.left == right) {
+                        right = inserted;
+                    } else if(inserted.right == left) {
+                        left = inserted;
+                    }
+                },
+                removed -> {
+                    count--;
+                    if (removed == left) left = removed.right;
+                    if (removed == right) right = removed.left;
+                });
     }
 
     static class Node<E> {
-        E data;
-        Node<E> left;
-        Node<E> right;
+        public E data;
+        private Node<E> left;
+        private Node<E> right;
+
 
         public Node(E data, Node<E> left, Node<E> right) {
             this.data = data;
             setLeft(left);
             setRight(right);
+        }
+
+        public Node<E> getLeft() {
+            return left;
+        }
+
+        public Node<E> getRight() {
+            return right;
         }
 
         public void setLeft(Node<E> left) {
@@ -115,44 +131,25 @@ public class LinkedDeque<E> implements Deque<E>, Iterable<E> {
         }
     }
 
-    abstract private static class DequeIterator<E> extends NodeIterator<E> {
-        private final LinkedDeque<E> deque;
-
-        public DequeIterator(LinkedDeque<E> deque, Node<E> initial) {
-            super(initial);
-            this.deque = deque;
-        }
-
-        @Override
-        public E insertAsLeft(E element) {
-            E result = super.insertAsLeft(element);
-            if (node.left == null) deque.left = node;
-            deque.count++;
-            return result;
-        }
-
-        @Override
-        public E insertAsRight(E element) {
-            E result = super.insertAsRight(element);
-            if (node.right == null) deque.right = node;
-            deque.count++;
-            return result;
-        }
-
-        @Override
-        public void remove() {
-            Node<E> removed = node;
-            super.remove();
-            if (removed == deque.left) deque.left = node;
-            if (removed == deque.right) deque.right = node;
-            deque.count--;
-        }
-    }
-
-    public abstract static class NodeIterator<E> implements Iterator<E> {
+    public static class NodeIterator<E> implements Iterator<E> {
 
         protected Node<E> node;
-        protected Node<E> prev;
+        private final UnaryOperator<Node<E>> getNext;
+        private final UnaryOperator<Node<E>> getPrev;
+        private final Consumer<Node<E>> onInserted;
+        private final Consumer<Node<E>> onBeforeRemove;
+
+        public NodeIterator(Node<E> node,
+                            @NotNull UnaryOperator<Node<E>> getNext,
+                            @NotNull UnaryOperator<Node<E>> getPrev,
+                            @NotNull Consumer<Node<E>> onInserted,
+                            @NotNull Consumer<Node<E>> onBeforeRemove) {
+            this.node = node;
+            this.getNext = requireNonNull(getNext);
+            this.getPrev = getPrev;
+            this.onInserted = requireNonNull(onInserted);
+            this.onBeforeRemove = requireNonNull(onBeforeRemove);
+        }
 
         @Override
         public boolean hasNext() {
@@ -164,31 +161,26 @@ public class LinkedDeque<E> implements Deque<E>, Iterable<E> {
             if (node == null) throw new NoSuchElementException();
 
             E result = node.data;
-            node = getTextNode(node);
+            node = getNext.apply(node);
             return result;
         }
 
-        abstract protected Node<E> getTextNode(Node<E> node);
-
         public E insertAsLeft(E element) {
             if (node == null) throw new NoSuchElementException();
-            new Node<E>(element, node.left, node);
+            onInserted.accept(new Node<E>(element, node.left, node));
             return element;
         }
 
         public E insertAsRight(E element) {
             if (node == null) throw new NoSuchElementException();
-            new Node<E>(element, node, node.right);
+            onInserted.accept(new Node<E>(element, node, node.right));
             return element;
         }
 
         public void remove() {
             if (node == null) throw new NoSuchElementException();
-            node = node.linkOff().left;
-        }
-
-        public NodeIterator(Node<E> node) {
-            this.node = node;
+            onBeforeRemove.accept(node);
+            node = getPrev.apply(node.linkOff());
         }
     }
 }
