@@ -19,60 +19,21 @@ public class TheBagProblem {
                 new Thing("Котелок", 1, 375)
         );
 
-        ProblemDecision decision = findMaximum(9, things);
-
-        System.out.print("Лучший варианты (цена = ");
-        System.out.print(decision.maxValue);
-        System.out.println("):");
-
-        for (List<Thing> option: decision.options) {
-            System.out.print("Загрузка = ");
-            System.out.print(option.stream().map(Thing::safeGetWeight).reduce(0, Integer::sum));
-            System.out.print(" :");
-            System.out.println(option);
-        }
-    }
-
-    private static ProblemDecision findMaximum(int limit, List<Thing> things) {
-        ProblemDecision decision = new ProblemDecision();
-        findMaximum(limit, things, decision, 0);
-        return decision;
-    }
-
-    private static void findMaximum(int limit, List<Thing> things, ProblemDecision varActualDecision, int startIdx) {
-        if (things == null || things.isEmpty()) return;
-
-        if (things.stream().map(Thing::safeGetWeight).reduce(0, Integer::sum) <= limit) {
-            Integer sum = things.stream().map(Thing::safeGetPrice).reduce(0, Integer::sum);
-
-            if (sum > varActualDecision.maxValue) {
-                varActualDecision.override(sum, things);
-            } else if (sum == varActualDecision.maxValue) {
-                varActualDecision.appendOption(things);
-            };
-
-            return;
-        }
-
-        for (int i = startIdx; i < things.size(); i++) {
-            Thing tmp = things.get(i);
-            try {
-                things.set(i, null);
-                findMaximum(limit, things, varActualDecision, i + 1);
-            } finally {
-                things.set(i, tmp);
-            }
-        }
+        ProblemDecision.find(9, things).display();
     }
 
     static class ProblemDecision {
+        private final int limit;
+        private final List<Thing> things;
         private int maxValue = 0;
-        private List<List<Thing>> options = new ArrayList<>();
+        private final List<List<Thing>> options = new ArrayList<>();
 
-        public ProblemDecision() {
+        private ProblemDecision(int limit, List<Thing> things) {
+            this.limit = limit;
+            this.things = things;
         }
 
-        public void override(int maxValue, List<Thing> option) {
+        private void override(int maxValue, List<Thing> option) {
             requireNonNull(option);
 
             this.maxValue = maxValue;
@@ -80,8 +41,53 @@ public class TheBagProblem {
             appendOption(option);
         }
 
-        public void appendOption(List<Thing> option) {
-            options.add(option.stream().filter(e -> e != null).collect(Collectors.toList()));
+        private void appendOption(List<Thing> option) {
+            options.add(option.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+        }
+
+        public static ProblemDecision find(int limit, List<Thing> things) {
+            ProblemDecision decision = new ProblemDecision(limit, things);
+            decision.find(0);
+            return decision;
+        }
+
+        private void find(int startIdx) {
+            if (things == null || things.isEmpty()) return;
+
+            if (things.stream().map(Thing::safeGetWeight).reduce(0, Integer::sum) <= limit) {
+                Integer sum = things.stream().map(Thing::safeGetPrice).reduce(0, Integer::sum);
+
+                if (sum > maxValue) {
+                    override(sum, things);
+                } else if (sum == maxValue) {
+                    appendOption(things);
+                }
+
+                return;
+            }
+
+            for (int i = startIdx; i < things.size(); i++) {
+                Thing tmp = things.get(i);
+                try {
+                    things.set(i, null);
+                    find(i + 1);
+                } finally {
+                    things.set(i, tmp);
+                }
+            }
+        }
+
+        public void display() {
+            System.out.print("Лучший варианты (цена = ");
+            System.out.print(maxValue);
+            System.out.println("):");
+
+            for (List<Thing> option: options) {
+                System.out.print("Загрузка = ");
+                System.out.print(option.stream().map(Thing::safeGetWeight).reduce(0, Integer::sum));
+                System.out.print(" :");
+                System.out.println(option);
+            }
         }
     }
 
