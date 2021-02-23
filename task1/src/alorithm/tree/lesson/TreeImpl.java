@@ -1,25 +1,37 @@
 package alorithm.tree.lesson;
 
 import java.util.Stack;
+import java.util.function.Consumer;
 
 public class TreeImpl<E extends Comparable<? super E>> implements Tree<E> {
 
     private class NodeAndParent {
-        Node<E> current;
-        Node<E> parent;
+        final Node<E> current;
+        final Node<E> parent;
+        final int depth;
 
-        public NodeAndParent(Node<E> current, Node<E> parent) {
+        public NodeAndParent(Node<E> current, Node<E> parent, int depth) {
             this.current = current;
             this.parent = parent;
+            this.depth = depth;
         }
     }
 
+    private static final int NO_DEPTH_LIMIT = -1;
+    private final int maxDepth;
     private int size;
     private Node<E> root;
 
+    public TreeImpl(int maxDepth) {
+        this.maxDepth = maxDepth;
+    }
+
+    public TreeImpl() {
+        this(NO_DEPTH_LIMIT);
+    }
 
     @Override
-    public void add(E value) {
+    public void add(E value) throws GodItIsTooDeepException {
         Node<E> newNode = new Node<>(value);
 
         if (isEmpty()) {
@@ -34,18 +46,26 @@ public class TreeImpl<E extends Comparable<? super E>> implements Tree<E> {
             return;
         }
 
-        Node<E> previous = nodeAndParent.parent;
-
-//        Consumer<Node<E>> setter = previous.isLeftChild(value) ? previous::setLeftChild : previous::setRightChild;
-//        setter.accept(newNode);
-
-        if (previous.isLeftChild(value)) {
-            previous.setLeftChild(newNode);
-        } else {
-            previous.setRightChild(newNode);
+        if (maxDepth != NO_DEPTH_LIMIT && nodeAndParent.depth > maxDepth) {
+            throw new Tree.GodItIsTooDeepException();
         }
 
+        Node<E> previous = nodeAndParent.parent;
+
+        Consumer<Node<E>> setter = previous.isLeftChild(value)
+                ? previous::setLeftChild
+                : previous::setRightChild;
+        setter.accept(newNode);
         size++;
+    }
+
+    @Override
+    public void addMayLoose(E value) {
+        try {
+            add(value);
+        } catch (GodItIsTooDeepException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -57,20 +77,19 @@ public class TreeImpl<E extends Comparable<? super E>> implements Tree<E> {
     private NodeAndParent doFind(E value) {
         Node<E> current = root;
         Node<E> previous = null;
+        int depth = 0;
         while (current != null) {
             if (current.getValue().equals(value)) {
-                return new NodeAndParent(current, previous);
+                return new NodeAndParent(current, previous, depth);
             }
+            depth++;
             previous = current;
-            if (current.isLeftChild(value)) {
-                current = current.getLeftChild();
-            }
-            else {
-                current = current.getRightChild();
-            }
+            current = current.isLeftChild(value)
+                    ? current.getLeftChild()
+                    : current.getRightChild();
         }
 
-        return new NodeAndParent(null, previous);
+        return new NodeAndParent(null, previous, depth);
     }
 
     @Override

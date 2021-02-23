@@ -20,18 +20,18 @@ public class Test6 {
         System.out.println(treeMap);
 
         Tree<Integer> tree = new TreeImpl<>();
-        tree.add(60);
-        tree.add(50);
-        tree.add(66);
-        tree.add(40);
-        tree.add(55);
-        tree.add(70);
-        tree.add(31);
-        tree.add(45);
-        tree.add(42);
-        tree.add(43);
-        tree.add(67);
-        tree.add(81);
+        tree.addMayLoose(60);
+        tree.addMayLoose(50);
+        tree.addMayLoose(66);
+        tree.addMayLoose(40);
+        tree.addMayLoose(55);
+        tree.addMayLoose(70);
+        tree.addMayLoose(31);
+        tree.addMayLoose(45);
+        tree.addMayLoose(42);
+        tree.addMayLoose(43);
+        tree.addMayLoose(67);
+        tree.addMayLoose(81);
 
         System.out.println("Find 70: " + tree.contains(70));
         System.out.println("Find 700: " + tree.contains(700));
