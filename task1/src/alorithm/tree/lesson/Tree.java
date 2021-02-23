@@ -20,6 +20,8 @@ public interface Tree<E extends Comparable<? super E>> {
 
     int size();
 
+    boolean isBalanced();
+
     void display();
 
     void traverse(TraverseMode mode);

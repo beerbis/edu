@@ -17,13 +17,15 @@ public class TreeTest {
             trees.add(makeRandomTree());
         }
 
-        for (Tree tree: trees) tree.display();
+        System.out.printf("Сбаллансировано деревьев: %d. Из %d-ти."
+                , trees.stream().filter(Tree::isBalanced).count()
+                , trees.size());
     }
 
     public static Tree<Integer> makeRandomTree() {
         Tree<Integer> tree = new TreeImpl<>(DEPTH_LIMIT);
 
-        for (int i = 0; i < 15 /*2^4-1*/; i++) {
+        for (int i = 0; i < 15; i++) {
             try {
                 tree.add(randomBetween(RANGE_LOW, RANGE_HIGH));
             } catch (Tree.GodItIsTooDeepException e) {
