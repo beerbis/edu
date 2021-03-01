@@ -8,7 +8,9 @@ public interface Tree<E extends Comparable<? super E>> {
         POST_ORDER,
     }
 
-    void add(E value);
+    void add(E value) throws GodItIsTooDeepException;
+    void addMayLoose(E value);
+
 
     boolean contains(E value);
 
@@ -18,8 +20,13 @@ public interface Tree<E extends Comparable<? super E>> {
 
     int size();
 
+    boolean isBalanced();
+
     void display();
 
     void traverse(TraverseMode mode);
+
+    class GodItIsTooDeepException extends Exception {
+    }
 
 }
