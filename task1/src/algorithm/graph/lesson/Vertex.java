@@ -7,6 +7,12 @@ public class Vertex {
     private final String label;
     private boolean isVisited;
 
+    /**
+     * Используется при поиске пути, и после остаётся грязной, но это не критично, т.к.
+     * в конце следующего поиска все шаги в зад от конечной вершины всё равно будут переписанными и актуальны.
+     */
+    private Vertex stepBack;
+
     public Vertex(String label) {
         this.label = label;
     }
@@ -22,6 +28,20 @@ public class Vertex {
     public void setVisited(boolean visited) {
         isVisited = visited;
     }
+
+
+    public Vertex getStepBack() {
+        return stepBack;
+    }
+
+    public void setStepBack(Vertex stepBack) {
+        this.stepBack = stepBack;
+    }
+
+    public void markSteppedTo(Vertex steppedTo) {
+        steppedTo.setStepBack(this);
+    }
+
 
     @Override
     public boolean equals(Object o) {
