@@ -32,15 +32,17 @@ public class ExampleHttpServlet extends HttpServlet {
                 .map(c -> c.getName() + " = " + c.getValue() + "<br/>")
                 .collect(Collectors.joining(", ")) + "</h1>");
         resp.addCookie(new Cookie("q" + new Random().nextInt(), "noValue"));
+
 //        resp.sendRedirect("http://ya.ru");
         Integer foo = (Integer) req.getAttribute("foo");
         foo = foo == null ? 0 : foo;
         req.setAttribute("foo", foo + 1);
 
-//        всё, что было во Writer отправлено - всё зря
-//        getServletContext().getRequestDispatcher("/basic_servlet").forward(req, resp);
-//        и после - тоже недоотправить...
-//        resp.getWriter().printf("<h1>After: New GET request</h1>");
+        getServletContext().getRequestDispatcher("/basic_servlet").include(req, resp);
+        resp.getWriter().printf("<h1>After: New GET request</h1>");
+
+        //редиректим на статический тупо-файл
+        getServletContext().getRequestDispatcher("/fee/index.html").include(req, resp);
 
         resp.setStatus(500);
     }
