@@ -1,6 +1,9 @@
 package algorithm.graph.lesson;
 
+import com.sun.istack.internal.NotNull;
+
 import java.util.*;
+import java.util.function.Consumer;
 
 public class Graph implements IGraph {
 
@@ -15,6 +18,12 @@ public class Graph implements IGraph {
     @Override
     public void addVertex(String label) {
         vertexList.add(new Vertex(label));
+    }
+
+    public void addVertex(String... labels) {
+        for (String label : labels) {
+            vertexList.add(new Vertex(label));
+        }
     }
 
     @Override
@@ -112,6 +121,52 @@ public class Graph implements IGraph {
         resetVertexState();
     }
 
+    public Iterable<String> path(String startLabel, String endLabel) {
+        int startIndex = indexOf(startLabel);
+        if (startIndex == -1) {
+            throw new IllegalArgumentException("Invalid start label");
+        }
+
+        int endIndex = indexOf(endLabel);
+        if (endIndex == -1) {
+            throw new IllegalArgumentException("Invalid end label");
+        }
+
+        System.out.println("\n Путь: " + startLabel + " -> " + endLabel);
+        if (startIndex == endIndex) return Arrays.asList(startLabel);
+
+        try {
+            Queue<Vertex> queue = new LinkedList<>();
+            Vertex vertex = vertexList.get(startIndex);
+            vertex.setStepBack(null);
+            visitVertex(queue, vertex, t -> {});
+            while (!queue.isEmpty()) {
+                vertex = getNearUnvisitedVertex(queue.peek());
+                if (vertex != null) {
+                    visitVertex(queue, vertex, queue.peek()::markSteppedTo);
+                    if (vertex.getLabel().equals(endLabel)) return backTraverseReversed(vertex);
+                } else {
+                    queue.remove();
+                }
+            }
+        } finally {
+            resetVertexState();
+        }
+        return Collections.emptyList();
+    }
+
+    @NotNull
+    private Queue<String> backTraverseReversed(@NotNull Vertex vertex) {
+        Objects.requireNonNull(vertex, "vertex should be passed...");
+        ArrayDeque<String> deque = new ArrayDeque<>();
+        do {
+            deque.addFirst(vertex.getLabel());
+            vertex = vertex.getStepBack();
+        } while (vertex != null);
+        return deque;
+    }
+
+
     private void resetVertexState() {
         for (Vertex vertex : vertexList) {
             vertex.setVisited(false);
@@ -134,7 +189,10 @@ public class Graph implements IGraph {
         stack.push(vertex);
     }
     private void visitVertex(Queue<Vertex> queue, Vertex vertex) {
-        System.out.println(vertex);
+        visitVertex(queue, vertex, System.out::println);
+    }
+    private void visitVertex(Queue<Vertex> queue, Vertex vertex, Consumer<Vertex> consumer) {
+        consumer.accept(vertex);
         vertex.setVisited(true);
         queue.add(vertex);
     }
