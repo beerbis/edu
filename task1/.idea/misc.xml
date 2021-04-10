@@ -5,6 +5,7 @@
       <list>
         <option value="$PROJECT_DIR$/chatServer/pom.xml" />
         <option value="$PROJECT_DIR$/testable/pom.xml" />
+        <option value="$PROJECT_DIR$/foo-shop/pom.xml" />
       </list>
     </option>
   </component>
