@@ -33,6 +33,15 @@ public class ExampleHttpServlet extends HttpServlet {
                 .collect(Collectors.joining(", ")) + "</h1>");
         resp.addCookie(new Cookie("q" + new Random().nextInt(), "noValue"));
 //        resp.sendRedirect("http://ya.ru");
+        Integer foo = (Integer) req.getAttribute("foo");
+        foo = foo == null ? 0 : foo;
+        req.setAttribute("foo", foo + 1);
+
+//        всё, что было во Writer отправлено - всё зря
+//        getServletContext().getRequestDispatcher("/basic_servlet").forward(req, resp);
+//        и после - тоже недоотправить...
+//        resp.getWriter().printf("<h1>After: New GET request</h1>");
+
         resp.setStatus(500);
     }
 
