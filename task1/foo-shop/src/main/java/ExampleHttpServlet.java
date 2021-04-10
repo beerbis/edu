@@ -22,6 +22,7 @@ public class ExampleHttpServlet extends HttpServlet {
         logger.info("New GET request");
 
         resp.getWriter().printf("<h1>New GET request</h1>");
+        getServletContext().getRequestDispatcher( "/header.html").include(req, resp);
         resp.getWriter().printf("<h1>getContextPath = " + req.getContextPath() + "</h1>");
         resp.getWriter().printf("<h1>getPathInfo = " + req.getPathInfo() + "</h1>");
 
@@ -31,7 +32,9 @@ public class ExampleHttpServlet extends HttpServlet {
         resp.getWriter().printf("<h1>getCookies = " + cookieStream
                 .map(c -> c.getName() + " = " + c.getValue() + "<br/>")
                 .collect(Collectors.joining(", ")) + "</h1>");
-        resp.addCookie(new Cookie("q" + new Random().nextInt(), "noValue"));
+        Cookie cookie = new Cookie("q" + new Random().nextInt(), "noValue");
+        cookie.setMaxAge(20);
+        resp.addCookie(cookie);
 
 //        resp.sendRedirect("http://ya.ru");
         Integer foo = (Integer) req.getAttribute("foo");
@@ -40,9 +43,9 @@ public class ExampleHttpServlet extends HttpServlet {
 
         getServletContext().getRequestDispatcher("/basic_servlet").include(req, resp);
         resp.getWriter().printf("<h1>After: New GET request</h1>");
+        getServletContext().getRequestDispatcher("/fee/index.html").include(req, resp);
 
         //редиректим на статический тупо-файл
-        getServletContext().getRequestDispatcher("/fee/index.html").include(req, resp);
 
         resp.setStatus(500);
     }
