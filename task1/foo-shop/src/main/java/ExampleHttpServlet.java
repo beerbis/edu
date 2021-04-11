@@ -37,9 +37,16 @@ public class ExampleHttpServlet extends HttpServlet {
         resp.addCookie(cookie);
 
 //        resp.sendRedirect("http://ya.ru");
-        Integer foo = (Integer) req.getAttribute("foo");
-        foo = foo == null ? 0 : foo;
-        req.setAttribute("foo", foo + 1);
+        Integer foo1 = (Integer) req.getAttribute("foo");
+        foo1 = foo1 == null ? 0 : foo1;
+        req.setAttribute("foo", foo1 + 1);
+        resp.getWriter().printf("<h1>request.attribute[foo]= " + foo1);
+
+        Integer foo2 = (Integer) getServletContext().getAttribute("foo");
+        foo2 = foo2 == null ? 0 : foo2;
+        getServletContext().setAttribute("foo", foo2 + 1);
+        resp.getWriter().printf("<h1>context.attribute[foo]= " + foo2);
+
 
         getServletContext().getRequestDispatcher("/basic_servlet").include(req, resp);
         resp.getWriter().printf("<h1>After: New GET request</h1>");
